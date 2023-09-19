@@ -1,26 +1,31 @@
-import os, subprocess
+import os
 from git import Repo
 
 # Define the directory structure
 root_dir = "my_git_repo_00X"
 dirs_and_files = {
-    "src": {
-        "python": ["main.py", "utils.py"],
-        "java": ["Main.java", "Utils.java"]
+    
+    "notebooks": ["main.ipynb"],
+    "src": ["train.py", "utils.py", "process.py"],
+    "docs": [".gitkeep"],
+    "models": [".gitkeep"],
+    "reports": [".gitkeep"],
+    ".": ["README.md", "LICENSE", "requirements.txt", ".gitignore","Makefile"],
+    "data": {
+        "processed": [".gitkeep"],
+        "cleaned": [".gitkeep"],
+        "raw": [".gitkeep"]
     },
-    "data": ["data.csv", "config.json"],
-    "docs": ["README.md"]
 }
 
 # Create the root directory
 os.makedirs(root_dir, exist_ok=True)
 
 # Initialize a Git repository in the root directory
-subprocess.check_call(f"git fetch --all; git reset origin/master; ", shell=True)
 repo = Repo.init(root_dir)
 
 # Function to create directories and files recursively
-def create_dirs_and_files(parent_dir, structure):
+def create_dirs_and_files(parent_dir, structure, repo=repo):
     for name, content in structure.items():
         path = os.path.join(parent_dir, name)
         if isinstance(content, list):
@@ -30,19 +35,30 @@ def create_dirs_and_files(parent_dir, structure):
                 file_path = os.path.join(path, file_name)
                 with open(file_path, "w") as f:
                     f.write(f"This is {file_name}\n")
+                # print(f"file_path: {file_path}")
+                # repo.index.add([file_path])
+                # repo.index.commit(f"Initial commit file: {file_name}")
         elif isinstance(content, dict):
             # Recursively create subdirectories and files
             os.makedirs(path, exist_ok=True)
             create_dirs_and_files(path, content)
+            # print(f"file_path: {file_path}")
+        try:
+            repo.index.add([path])
+            repo.index.commit(f"Initial commit folder: {name}")
+
+        except:
+            pass
+        # print(f"::: {path}")
 
 # Create the directory structure and files
 create_dirs_and_files(root_dir, dirs_and_files)
 
-# Add all files to the Git repository
-repo.index.add(["."])
+# # Add all files to the Git repository
+# repo.index.add(["."])
 
-# Commit the changes
-repo.index.commit("Initial commit")
+# # Commit the changes
+# repo.index.commit("Initial commit")
 
 # Print the repository tree
 def print_tree(root_dir):
@@ -56,6 +72,6 @@ def print_tree(root_dir):
 
 print_tree(root_dir)
 
-# You can push this repository to a remote repository if needed.
+# FINAL : You can push this repository to a remote repository if needed.
 repo.create_remote('origin', 'https://github.com/eaedk/repo.git')
 repo.remotes.origin.push()
